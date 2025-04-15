@@ -1,0 +1,24 @@
+# 医療画像ファイル
+*.mif
+*.nii
+*.nii.gz
+*.dcm
+
+# その他重たいデータやバイナリ
+*.zip
+*.tar
+*.tar.gz
+*.h5
+*.pt
+*.npz
+
+# Python仮想環境
+venv/
+.env/
+__pycache__/
+
+# VSCode関連
+.vscode/
+
+# Macの不要ファイル
+.DS_Store
