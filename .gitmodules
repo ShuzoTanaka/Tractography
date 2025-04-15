@@ -1,0 +1,3 @@
+[submodule "mrtrix3"]
+	path = mrtrix3
+	url = https://github.com/MRtrix3/mrtrix3.git
