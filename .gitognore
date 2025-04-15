@@ -1,0 +1,17 @@
+# 医用画像・DTI関連ファイルを除外
+*.bval
+*.bvec
+*.json
+*.mif
+*.nii
+*.nii.gz
+
+# バックアップやキャッシュの除外
+*.bak
+*.tmp
+*.swp
+__pycache__/
+*.pyc
+
+# VSCodeなどのIDE設定も無視（必要なら）
+.vscode/

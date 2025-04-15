@@ -31,7 +31,7 @@ dwi_data, dwi_affine = load_nifti(reference_file)
 
 # .tck ファイルをロード
 sft = load_tck(tck_file, reference=reference_file)
-streamlines = sft.streamlines
+streamlines = sft.streamlines 
 
 # DWI の座標系から FA マップの座標系への変換行列
 affine_transform = np.linalg.inv(dwi_affine) @ fa_affine
