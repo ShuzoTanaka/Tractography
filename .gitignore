@@ -1,5 +1,5 @@
 # 医療画像ファイル
-*.mif
+# *.mif
 *.nii
 *.nii.gz
 *.dcm
