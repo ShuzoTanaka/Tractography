@@ -115,3 +115,5 @@ stream_actor = actor.line(streamlines_transformed, colors=streamline_colors)
 scene = window.Scene()
 scene.add(stream_actor)
 window.show(scene)
+
+
