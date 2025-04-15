@@ -68,19 +68,25 @@ for streamline in streamlines_transformed:
 
     # 各ストリームライン内で正規化
     if len(values) > 0:
-        fa_min = np.min(values)
-        fa_max = np.max(values)
-        if fa_max - fa_min == 0:
+        fa_min_local = np.min(values)
+        fa_max_local = np.max(values)
+        if fa_max_local - fa_min_local == 0:
             normed = [0.0 for _ in values]
         else:
-            normed = [(v - fa_min) / (fa_max - fa_min) for v in values]
+            normed = [(v - fa_min_local) / (fa_max_local - fa_min_local) for v in values]
 
         # 色を設定（赤〜黄）
         streamline_colors.append([
             [1.0, v, 0.0] for v in normed  # R=1.0, G=正規化, B=0.0
         ])
+
+        # ★ ここでストリームラインごとの平均を記録
+        fa_means.append(np.mean(values))
+
     else:
         streamline_colors.append([[1.0, 0.0, 0.0] for _ in streamline])  # デフォルト赤
+        fa_means.append(0.0)
+
 
 
 
