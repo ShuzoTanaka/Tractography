@@ -43,51 +43,15 @@ streamlines_transformed = list(transform_streamlines(streamlines, affine_transfo
 accessed_voxels = np.zeros_like(fa_data, dtype=bool)
 
 # ストリームラインごとのFA平均値を計算
-# fa_means = []
-# for streamline in streamlines_transformed:
-#     values = []
-#     for point in streamline:
-#         voxel = np.round(np.dot(np.linalg.inv(fa_affine), np.append(point, 1))[:3]).astype(int)
-#         if all((0 <= voxel) & (voxel < fa_data.shape)):
-#             values.append(fa_data[tuple(voxel)])
-#     mean_fa = np.mean(values) if values else 0
-#     fa_means.append(mean_fa)
-streamline_colors = []
 fa_means = []
-
 for streamline in streamlines_transformed:
     values = []
     for point in streamline:
         voxel = np.round(np.dot(np.linalg.inv(fa_affine), np.append(point, 1))[:3]).astype(int)
-        if not all((0 <= voxel) & (voxel < fa_data.shape)):
-            print("外れたvoxel座標:", voxel)
         if all((0 <= voxel) & (voxel < fa_data.shape)):
             values.append(fa_data[tuple(voxel)])
-        else:
-            values.append(0.0)  # 範囲外は0にする
-
-    # 各ストリームライン内で正規化
-    if len(values) > 0:
-        fa_min_local = np.min(values)
-        fa_max_local = np.max(values)
-        if fa_max_local - fa_min_local == 0:
-            normed = [0.0 for _ in values]
-        else:
-            normed = [(v - fa_min_local) / (fa_max_local - fa_min_local) for v in values]
-
-        # 色を設定（赤〜黄）
-        streamline_colors.append([
-            [1.0, v, 0.0] for v in normed  # R=1.0, G=正規化, B=0.0
-        ])
-
-        # ★ ここでストリームラインごとの平均を記録
-        fa_means.append(np.mean(values))
-
-    else:
-        streamline_colors.append([[1.0, 0.0, 0.0] for _ in streamline])  # デフォルト赤
-        fa_means.append(0.0)
-
-
+    mean_fa = np.mean(values) if values else 0
+    fa_means.append(mean_fa)
 
 
 # 正規化のための最大・最小値を取得
