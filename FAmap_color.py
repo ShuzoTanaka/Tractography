@@ -1,10 +1,3 @@
-"""
-@.tractenv3
-02/20修正、正しそうなFAmapを作成可能にしました!
-ただし、色の変化がわかりづらいです。
-highlited_FA.nii.gzを新規ファイルとして、参照した箇所を見ることができる
-"""
-
 import os
 import sys
 import numpy as np
@@ -15,6 +8,8 @@ from dipy.io.streamline import load_tck
 from dipy.viz import window, actor
 from dipy.io.image import load_nifti
 from dipy.tracking.streamline import transform_streamlines
+from scipy.ndimage import gaussian_filter
+
 
 # コマンドライン引数でディレクトリを取得
 if len(sys.argv) < 5:
@@ -35,6 +30,9 @@ dwi_data, dwi_affine = load_nifti(reference_file)
 sft = load_tck(tck_file, reference=reference_file)
 streamlines = sft.streamlines 
 
+# ガウシアンフィルタによる補正
+fa_corrected = gaussian_filter(fa_data, sigma=1)
+
 # DWI の座標系から FA マップの座標系への変換行列
 affine_transform = np.linalg.inv(dwi_affine) @ fa_affine
 
@@ -53,10 +51,10 @@ for streamline in streamlines_transformed:
     for point in streamline:
         voxel = np.round(np.dot(np.linalg.inv(fa_affine), np.append(point, 1))[:3]).astype(int)
         if all((0 <= voxel) & (voxel < fa_data.shape)):
-            values.append(fa_data[tuple(voxel)])
+            values.append(fa_corrected[tuple(voxel)])  # ← 補正後のFAを使う！
         else:
-            values.append(0.0)  # 範囲外は0にする
-
+            values.append(0.0)
+            
     # 各ストリームライン内で正規化
     if len(values) > 0:
         fa_min_local = np.min(values)
@@ -86,7 +84,7 @@ fa_min = np.min(fa_means)
 fa_max = np.max(fa_means)
 
 # 選べるカラーマップ：'jet', 'viridis', 'plasma', 'magma', 'inferno', 'cividis', 'coolwarm', 'bwr' など
-colormap = cm.get_cmap('viridis')  # ここでカラーマップ選択
+colormap = cm.get_cmap('jet_r')  # ここでカラーマップ選択
 
 def get_color_from_fa(fa_value, fa_min, fa_max):
     if fa_max - fa_min == 0:
