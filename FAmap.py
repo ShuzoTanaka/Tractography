@@ -9,6 +9,8 @@ import os
 import sys
 import numpy as np
 import nibabel as nib
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 from dipy.io.streamline import load_tck
 from dipy.viz import window, actor
 from dipy.io.image import load_nifti
@@ -43,39 +45,58 @@ streamlines_transformed = list(transform_streamlines(streamlines, affine_transfo
 accessed_voxels = np.zeros_like(fa_data, dtype=bool)
 
 # ストリームラインごとのFA平均値を計算
+streamline_colors = []
 fa_means = []
+
 for streamline in streamlines_transformed:
     values = []
     for point in streamline:
         voxel = np.round(np.dot(np.linalg.inv(fa_affine), np.append(point, 1))[:3]).astype(int)
         if all((0 <= voxel) & (voxel < fa_data.shape)):
             values.append(fa_data[tuple(voxel)])
-    mean_fa = np.mean(values) if values else 0
-    fa_means.append(mean_fa)
+        else:
+            values.append(0.0)  # 範囲外は0にする
+
+    # 各ストリームライン内で正規化
+    if len(values) > 0:
+        fa_min_local = np.min(values)
+        fa_max_local = np.max(values)
+        if fa_max_local - fa_min_local == 0:
+            normed = [0.0 for _ in values]
+        else:
+            normed = [(v - fa_min_local) / (fa_max_local - fa_min_local) for v in values]
+
+        # 色を設定（赤〜黄）
+        streamline_colors.append([
+            [1.0, v, 0.0] for v in normed  # R=1.0, G=正規化, B=0.0
+        ])
+
+        # ★ ここでストリームラインごとの平均を記録
+        fa_means.append(np.mean(values))
+
+    else:
+        streamline_colors.append([[1.0, 0.0, 0.0] for _ in streamline])  # デフォルト赤
+        fa_means.append(0.0)
+
+
 
 
 # 正規化のための最大・最小値を取得
 fa_min = np.min(fa_means)
 fa_max = np.max(fa_means)
 
+# 選べるカラーマップ：'jet', 'viridis', 'plasma', 'magma', 'inferno', 'cividis', 'coolwarm', 'bwr' など
+colormap = cm.get_cmap('jet_r')  # ここでカラーマップ選択
+
 def get_color_from_fa(fa_value, fa_min, fa_max):
     if fa_max - fa_min == 0:
-        normalized_fa = 0  # すべての値が同じ場合、0にする
+        normalized_fa = 0
     else:
-        normalized_fa = (fa_value - fa_min) / (fa_max - fa_min)  # 0-1の範囲に正規化
+        normalized_fa = (fa_value - fa_min) / (fa_max - fa_min)
     
-    # print(normalized_fa)
+    color = colormap(normalized_fa)  # RGBAで取得される (0-1)
+    return list(color[:3])  # RGBのみ取り出す
 
-    # 赤チャネルは常に強く (一定の高い値)
-    red_channel = 1.0
-
-    # 緑チャネルはFA値が高いほど強くなる（赤からオレンジへの変化）
-    green_channel = normalized_fa
-
-    # 青チャネルは固定で0（赤とオレンジのみを表現）
-    blue_channel = 0.0
-
-    return [red_channel, green_channel, blue_channel]
 
 # ストリームラインの色を計算
 streamline_colors = np.array([get_color_from_fa(fa, fa_min, fa_max) for fa in fa_means])
@@ -85,8 +106,3 @@ stream_actor = actor.line(streamlines_transformed, colors=streamline_colors)
 scene = window.Scene()
 scene.add(stream_actor)
 window.show(scene)
-
-
-
-
-
