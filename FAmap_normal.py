@@ -32,21 +32,26 @@ affine_transform = np.linalg.inv(dwi_affine) @ fa_affine
 # ストリームラインをFAマップの空間に変換
 streamlines_transformed = list(transform_streamlines(streamlines, affine_transform))
 
+# FA値の全体リスト（streamline全体の全点から）
+fa_all_values = []
+
 # ストリームラインごとのFA平均値を計算
 fa_means = []
-for i, streamline in enumerate(streamlines_transformed):
+for streamline in streamlines_transformed:
     values = []
-    inside_count = 0
     for point in streamline:
         voxel = np.round(np.dot(np.linalg.inv(fa_affine), np.append(point, 1))[:3]).astype(int)
         if all((0 <= voxel) & (voxel < fa_data.shape)):
-            fa_value = fa_data[tuple(voxel)]
-            values.append(fa_value)
-            inside_count += 1
-    print(f"Streamline {i}: {inside_count}/{len(streamline)} points inside FA volume")
-
+            fa_val = fa_data[tuple(voxel)]
+            values.append(fa_val)
+            fa_all_values.append(fa_val)  # ← 全体FA値リストに追加
     mean_fa = np.mean(values) if values else 0
     fa_means.append(mean_fa)
+
+# 全体の最小・最大FA値（streamline全体の全点から算出）
+fa_min = np.min(fa_all_values)
+fa_max = np.max(fa_all_values)
+
 
 # 全ストリームラインのFA平均を使って正規化
 fa_min = np.min(fa_means)
