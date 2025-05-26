@@ -3,6 +3,11 @@
 *.nii
 *.nii.gz
 *.dcm
+*.bval
+*.bvec
+*.json
+*.tck
+*.tx
 
 # その他重たいデータやバイナリ
 *.zip
