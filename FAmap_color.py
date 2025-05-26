@@ -30,9 +30,6 @@ dwi_data, dwi_affine = load_nifti(reference_file)
 sft = load_tck(tck_file, reference=reference_file)
 streamlines = sft.streamlines 
 
-# ガウシアンフィルタによる補正
-fa_corrected = gaussian_filter(fa_data, sigma=1)
-
 # DWI の座標系から FA マップの座標系への変換行列
 affine_transform = np.linalg.inv(dwi_affine) @ fa_affine
 
@@ -51,7 +48,7 @@ for streamline in streamlines_transformed:
     for point in streamline:
         voxel = np.round(np.dot(np.linalg.inv(fa_affine), np.append(point, 1))[:3]).astype(int)
         if all((0 <= voxel) & (voxel < fa_data.shape)):
-            values.append(fa_corrected[tuple(voxel)])  # ← 補正後のFAを使う！
+            values.append(fa_data[tuple(voxel)]) 
         else:
             values.append(0.0)
             
