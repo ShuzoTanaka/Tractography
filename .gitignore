@@ -16,7 +16,7 @@
 *.h5
 *.pt
 *.npz
-
+*.png
 # Python仮想環境
 venv/
 .env/
